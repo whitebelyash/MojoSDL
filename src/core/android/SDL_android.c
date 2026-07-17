@@ -48,7 +48,7 @@
 #include <dlfcn.h>
 #include <time.h>
 
-#define SDL_JAVA_PREFIX                               org_libsdl_app
+#define SDL_JAVA_PREFIX                               git_mojo_sdl
 #define CONCAT1(prefix, class, function)              CONCAT2(prefix, class, function)
 #define CONCAT2(prefix, class, function)              Java_##prefix##_##class##_##function
 #define SDL_JAVA_INTERFACE(function)                  CONCAT1(SDL_JAVA_PREFIX, SDLActivity, function)
@@ -573,17 +573,17 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
         return JNI_VERSION_1_4;
     }
 
-    register_methods(env, "org/libsdl/app/SDLActivity", SDLActivity_tab, SDL_arraysize(SDLActivity_tab));
+    register_methods(env, "git/mojo/sdl/SDLActivity", SDLActivity_tab, SDL_arraysize(SDLActivity_tab));
 #ifndef SDL_VIDEO_DISABLED
-    register_methods(env, "org/libsdl/app/SDLInputConnection", SDLInputConnection_tab, SDL_arraysize(SDLInputConnection_tab));
+    register_methods(env, "git/mojo/sdl/SDLInputConnection", SDLInputConnection_tab, SDL_arraysize(SDLInputConnection_tab));
 #endif
 #ifndef SDL_AUDIO_DISABLED
-    register_methods(env, "org/libsdl/app/SDLAudioManager", SDLAudioManager_tab, SDL_arraysize(SDLAudioManager_tab));
+    register_methods(env, "git/mojo/sdl/SDLAudioManager", SDLAudioManager_tab, SDL_arraysize(SDLAudioManager_tab));
 #endif
 #ifdef SDL_ANDROID_NEED_CONTROLLER_MANAGER
-    register_methods(env, "org/libsdl/app/SDLControllerManager", SDLControllerManager_tab, SDL_arraysize(SDLControllerManager_tab));
+    register_methods(env, "git/mojo/sdl/SDLControllerManager", SDLControllerManager_tab, SDL_arraysize(SDLControllerManager_tab));
 #endif
-    register_methods(env, "org/libsdl/app/HIDDeviceManager", HIDDeviceManager_tab, SDL_arraysize(HIDDeviceManager_tab));
+    register_methods(env, "git/mojo/sdl/HIDDeviceManager", HIDDeviceManager_tab, SDL_arraysize(HIDDeviceManager_tab));
 
     return JNI_VERSION_1_4;
 }

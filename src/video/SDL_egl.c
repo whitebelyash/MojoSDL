@@ -27,6 +27,7 @@
 #endif
 #ifdef SDL_VIDEO_DRIVER_ANDROID
 #include <android/native_window.h>
+#include <dlfcn.h>
 #include "../video/android/SDL_androidvideo.h"
 #endif
 #ifdef SDL_VIDEO_DRIVER_RPI
@@ -336,7 +337,29 @@ void SDL_EGL_UnloadLibrary(SDL_VideoDevice *_this)
 
 static bool SDL_EGL_LoadLibraryInternal(SDL_VideoDevice *_this, const char *egl_path)
 {
+
     SDL_SharedObject *egl_dll_handle = NULL;
+    // EGL library loading
+#ifdef SDL_VIDEO_DRIVER_ANDROID
+    // Try mojoexec's namespace-bypassed EGL handle first
+    // Temporary mojoexec implementation, TODO: rework
+    if (!egl_dll_handle) {
+        void *mojoexec_h = dlopen("libmojoexec.so", RTLD_NOLOAD | RTLD_LOCAL);
+        if (mojoexec_h) {
+            void *(*acq_egl)(void) = (void *(*)(void))dlsym(mojoexec_h, "mojoexec_acq_egl_handle");
+            if (acq_egl) {
+                void *mojo_egl = acq_egl();
+                if (mojo_egl) {
+                    fprintf(stderr, "SDL-MojoExec: loaded EGL through %p\n", mojo_egl);
+                    egl_dll_handle = (SDL_SharedObject *)mojo_egl;
+                }
+            }
+        }
+        else {
+            fprintf(stderr, "SDL-MojoExec: Failed loading!\n");
+        }
+    }
+#endif
 #if !defined(SDL_VIDEO_STATIC_ANGLE) && !defined(SDL_VIDEO_DRIVER_VITA)
     SDL_SharedObject *opengl_dll_handle = NULL;
 #endif
@@ -1350,6 +1373,19 @@ EGLSurface SDL_EGL_CreateSurface(SDL_VideoDevice *_this, SDL_Window *window, Nat
     attribs[attr++] = EGL_NONE;
 
     surface = _this->egl_data->eglCreateWindowSurface(_this->egl_data->egl_display, _this->egl_data->egl_config, nw, &attribs[0]);
+    // Ignore window attributes on Android
+    // Maybe babe (uncomment if needed for LTW, seems to be fine on Mesa)
+    /*
+#ifdef SDL_VIDEO_DRIVER_ANDROID
+    surface = _this->egl_data->eglCreateWindowSurface(_this->egl_data->egl_display,
+                                                      _this->egl_data->egl_config,
+                                                      nw, NULL);
+#else
+    surface = _this->egl_data->eglCreateWindowSurface(_this->egl_data->egl_display,
+                                                      _this->egl_data->egl_config,
+                                                      nw, &attribs[0]);
+#endif
+     */
     if (surface == EGL_NO_SURFACE) {
         // we had a report of Nvidia drivers that report EGL_BAD_ATTRIBUTE if you try to
         //  use EGL_PRESENT_OPAQUE_EXT, even when EGL_EXT_present_opaque is reported as available.

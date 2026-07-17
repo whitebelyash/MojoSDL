@@ -144,6 +144,59 @@ public class SDLActivity {
         return false;
     }
 
+    public static String getDeviceFormFactor() {
+        // TODO
+        return "";
+    }
+
+    public static boolean getManifestEnvironmentVariables() {
+        // TODO
+        return false;
+    }
+
+    public static boolean isAndroidTV() {
+        // TODO
+        return false;
+    }
+
+    public static boolean isChromebook() {
+        // TODO
+        return false;
+    }
+
+    public static boolean isDeXMode() {
+        // TODO
+        return false;
+    }
+
+    public static boolean isTablet() {
+        // TODO
+        return false;
+    }
+
+    public static boolean sendMessage(int what, int arg) {
+        // TODO
+        return false;
+    }
+
+    public static void minimizeWindow() {
+        // TODO
+    }
+
+    public static boolean setActivityTitle(String title) {
+        // TODO
+        return true;
+    }
+
+    public static void setWindowStyle(boolean fullscreen) {
+        // TODO
+    }
+
+    public static boolean showTextInput(int x, int y, int w, int h, int flags) {
+        // TODO
+        return false;
+    }
+
     public static boolean showToast(String message, int duration, int gravity, int xOffset, int yOffset) {
         // TODO
         return false;

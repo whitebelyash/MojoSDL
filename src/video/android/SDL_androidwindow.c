@@ -75,6 +75,17 @@ bool Android_CreateWindow(SDL_VideoDevice *_this, SDL_Window *window, SDL_Proper
         result = SDL_SetError("Could not fetch native window");
         goto endfunction;
     }
+    //ANativeWindow_acquire(data->native_window);
+    fprintf(stderr, "SDL ANativeWindow width %u\n", ANativeWindow_getWidth(data->native_window));
+    fprintf(stderr, "SDL ANativeWindow height %u\n", ANativeWindow_getHeight(data->native_window));
+
+    // Window sizes needs to be updated or Minecraft will use 1x1 swapchain :HYPERROFEL:
+    window->w = ANativeWindow_getWidth(data->native_window);
+    window->h = ANativeWindow_getHeight(data->native_window);
+
+    Android_SurfaceWidth = window->w;
+    Android_SurfaceHeight = window->h;
+
     SDL_SetPointerProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_ANDROID_WINDOW_POINTER, data->native_window);
 
     /* Do not create EGLSurface for Vulkan window since it will then make the window
