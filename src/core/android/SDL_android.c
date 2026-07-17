@@ -95,6 +95,7 @@ static jmethodID midOpenURL;
 static jmethodID midRequestPermission;
 static jmethodID midShowToast;
 static jmethodID midSendMessage;
+static jmethodID midNotifyInit;
 static jmethodID midOpenFileDescriptor;
 static jmethodID midManualBackButton;
 #ifndef SDL_DIALOG_DISABLED
@@ -679,6 +680,7 @@ JNIEXPORT void JNICALL SDL_JAVA_INTERFACE(nativeSetupJNI)(JNIEnv *env, jclass cl
     midRequestPermission = (*env)->GetStaticMethodID(env, mActivityClass, "requestPermission", "(Ljava/lang/String;I)V");
     midShowToast = (*env)->GetStaticMethodID(env, mActivityClass, "showToast", "(Ljava/lang/String;IIII)Z");
     midSendMessage = (*env)->GetStaticMethodID(env, mActivityClass, "sendMessage", "(II)Z");
+    midNotifyInit = (*env)->GetStaticMethodID(env, mActivityClass, "onSDLInit", "()V");
     midOpenFileDescriptor = (*env)->GetStaticMethodID(env, mActivityClass, "openFileDescriptor", "(Ljava/lang/String;Ljava/lang/String;)I");
     midManualBackButton = (*env)->GetStaticMethodID(env, mActivityClass, "manualBackButton", "()V");
 #ifndef SDL_DIALOG_DISABLED
@@ -3535,6 +3537,12 @@ bool Android_JNI_SendMessage(int command, int param)
 {
     JNIEnv *env = Android_JNI_GetEnv();
     return (*env)->CallStaticBooleanMethod(env, mActivityClass, midSendMessage, command, param);
+}
+
+void Android_JNI_InitNotify()
+{
+    JNIEnv *env = Android_JNI_GetEnv();
+    (*env)->CallStaticVoidMethod(env, mActivityClass, midNotifyInit);
 }
 
 // Show toast notification

@@ -162,6 +162,8 @@ VideoBootStrap Android_bootstrap = {
 
 bool Android_VideoInit(SDL_VideoDevice *_this)
 {
+    Android_JNI_InitNotify();
+
     SDL_VideoData *videodata = _this->internal;
     SDL_DisplayID displayID;
     SDL_VideoDisplay *display;
@@ -328,3 +330,4 @@ void Android_SetDarkMode(bool enabled)
 }
 
 #endif // SDL_VIDEO_DRIVER_ANDROID
+

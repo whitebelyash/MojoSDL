@@ -86,6 +86,9 @@ bool Android_JNI_SetClipboardText(const char *text);
 char *Android_JNI_GetClipboardText(void);
 bool Android_JNI_HasClipboardText(void);
 
+// Init notifier
+void Android_JNI_InitNotify();
+
 // Touch support
 void Android_JNI_InitTouch(void);
 

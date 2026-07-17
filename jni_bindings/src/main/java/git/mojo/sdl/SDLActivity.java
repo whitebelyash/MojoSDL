@@ -1,6 +1,7 @@
 package git.mojo.sdl;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.Surface;
 
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.Locale;
 public class SDLActivity {
 
     private static List<GrabListener> grabListeners = new ArrayList<>();
+    private static Runnable initCallback;
 
     protected static Surface mSurface;
 
@@ -19,6 +21,9 @@ public class SDLActivity {
 
     public static void setNativeSurface(Surface surface){
         SDLActivity.mSurface = surface;
+    }
+    public static void setInitCallback(Runnable callback){
+        initCallback = callback;
     }
 
     // Native method declarations
@@ -70,6 +75,10 @@ public class SDLActivity {
     public static native void onNativePinchStart(float span_x, float span_y, float focus_x, float focus_y);
     public static native void onNativePinchUpdate(float scale, float span_x, float span_y, float focus_x, float focus_y);
     public static native void onNativePinchEnd();
+    public static void onSDLInit(){
+        Log.i("SDLInit", "SDL init called!");
+        if(initCallback != null) initCallback.run();
+    }
 
     public static void addGrabListener(GrabListener grabListener){
         SDLActivity.grabListeners.add(grabListener);
