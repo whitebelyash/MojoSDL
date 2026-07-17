@@ -3,9 +3,13 @@ package git.mojo.sdl;
 import android.app.Activity;
 import android.view.Surface;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class SDLActivity {
+
+    private static List<GrabListener> grabListeners = new ArrayList<>();
 
     protected static Surface mSurface;
 
@@ -39,6 +43,7 @@ public class SDLActivity {
     public static native boolean onNativeSoftReturnKey();
     public static native void onNativeKeyboardFocusLost();
     public static native void onNativeMouse(int button, int action, float x, float y, boolean relative);
+    public static native void onNativeMouseButton(int button, int action, float x, float y, boolean relative);
     public static native void onNativeTouch(int touchDevId, int pointerFingerId,
                                             int action, float x,
                                             float y, float p);
@@ -66,6 +71,10 @@ public class SDLActivity {
     public static native void onNativePinchUpdate(float scale, float span_x, float span_y, float focus_x, float focus_y);
     public static native void onNativePinchEnd();
 
+    public static void addGrabListener(GrabListener grabListener){
+        SDLActivity.grabListeners.add(grabListener);
+    }
+
     public static Surface getNativeSurface() {
         return mSurface;
     }
@@ -89,13 +98,14 @@ public class SDLActivity {
     }
 
     public static boolean supportsRelativeMouse() {
-        // TODO
-        return false;
+        return true;
     }
 
     public static boolean setRelativeMouseEnabled(boolean enabled) {
-        // TODO
-        return false;
+        for(GrabListener grabListener : grabListeners){
+            grabListener.onGrabState(enabled);
+        }
+        return true;
     }
 
     public static void initTouch() {
