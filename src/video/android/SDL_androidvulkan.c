@@ -35,6 +35,8 @@
 
 #include "SDL_androidvulkan.h"
 
+#include <mojoexec.h>
+
 
 bool Android_Vulkan_LoadLibrary(SDL_VideoDevice *_this, const char *path)
 {
@@ -47,19 +49,14 @@ bool Android_Vulkan_LoadLibrary(SDL_VideoDevice *_this, const char *path)
         return SDL_SetError("Vulkan already loaded");
     }
 
-    // Load the Vulkan loader library
-    if (!path) {
-        path = SDL_GetHint(SDL_HINT_VULKAN_LIBRARY);
-    }
-    if (!path) {
-        path = "libvulkan.so";
-    }
-    _this->vulkan_config.loader_handle = SDL_LoadObject(path);
+    _this->vulkan_config.loader_handle = mojoexec_acq_vulkan_handle();
+    fprintf(stderr, "SDL-MojoExec: acquired vulkan handle from mojoexec = %p\n", _this->vulkan_config.loader_handle);
+
     if (!_this->vulkan_config.loader_handle) {
         return false;
     }
-    SDL_strlcpy(_this->vulkan_config.loader_path, path,
-                SDL_arraysize(_this->vulkan_config.loader_path));
+    //SDL_strlcpy(_this->vulkan_config.loader_path, path,
+                //SDL_arraysize(_this->vulkan_config.loader_path));
     vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)SDL_LoadFunction(
         _this->vulkan_config.loader_handle, "vkGetInstanceProcAddr");
     if (!vkGetInstanceProcAddr) {
