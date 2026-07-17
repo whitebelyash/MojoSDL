@@ -4346,7 +4346,7 @@ endif()
 export(TARGETS SDL3_Headers NAMESPACE "SDL3::" FILE "SDL3headersTargets.cmake")
 
 if(SDL_SHARED)
-  export(TARGETS SDL3-shared NAMESPACE "SDL3::" FILE "SDL3sharedTargets.cmake")
+  export(TARGETS SDL3-shared mojoexec NAMESPACE "SDL3::" FILE "SDL3sharedTargets.cmake")
 endif()
 
 if(SDL_STATIC)

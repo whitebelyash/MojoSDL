@@ -8,11 +8,6 @@ android {
 
     defaultConfig {
         minSdk 21
-        externalNativeBuild {
-            cmake {
-                arguments "-DANDROID_PLATFORM=android-21", "-DANDROID_STL=c++_static", "-DCMAKE_PROJECT_INCLUDE=${project.projectDir}/sdl_visibility_fix.cmake"
-            }
-        }
     }
 
     buildTypes {
@@ -34,11 +29,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
-    }
-    externalNativeBuild {
-        cmake {
-            path file('../CMakeLists.txt')
-        }
     }
 }
 

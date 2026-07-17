@@ -28,6 +28,7 @@
 #ifdef SDL_VIDEO_DRIVER_ANDROID
 #include <android/native_window.h>
 #include <dlfcn.h>
+#include <mojoexec.h>
 #include "../video/android/SDL_androidvideo.h"
 #endif
 #ifdef SDL_VIDEO_DRIVER_RPI
@@ -341,23 +342,9 @@ static bool SDL_EGL_LoadLibraryInternal(SDL_VideoDevice *_this, const char *egl_
     SDL_SharedObject *egl_dll_handle = NULL;
     // EGL library loading
 #ifdef SDL_VIDEO_DRIVER_ANDROID
-    // Try mojoexec's namespace-bypassed EGL handle first
-    // Temporary mojoexec implementation, TODO: rework
-    if (!egl_dll_handle) {
-        void *mojoexec_h = dlopen("libmojoexec.so", RTLD_NOLOAD | RTLD_LOCAL);
-        if (mojoexec_h) {
-            void *(*acq_egl)(void) = (void *(*)(void))dlsym(mojoexec_h, "mojoexec_acq_egl_handle");
-            if (acq_egl) {
-                void *mojo_egl = acq_egl();
-                if (mojo_egl) {
-                    fprintf(stderr, "SDL-MojoExec: loaded EGL through %p\n", mojo_egl);
-                    egl_dll_handle = (SDL_SharedObject *)mojo_egl;
-                }
-            }
-        }
-        else {
-            fprintf(stderr, "SDL-MojoExec: Failed loading!\n");
-        }
+    egl_dll_handle = mojoexec_acq_egl_handle();
+    if (egl_dll_handle) {
+        fprintf(stderr, "SDL-MojoExec: loaded EGL through %p\n", egl_dll_handle);
     }
 #endif
 #if !defined(SDL_VIDEO_STATIC_ANGLE) && !defined(SDL_VIDEO_DRIVER_VITA)
