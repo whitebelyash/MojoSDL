@@ -185,6 +185,30 @@ void Android_SetWindowResizable(SDL_VideoDevice *_this, SDL_Window *window, bool
     Android_JNI_SetOrientation(window->w, window->h, window->flags & SDL_WINDOW_RESIZABLE, SDL_GetHint(SDL_HINT_ORIENTATIONS));
 }
 
+void Android_UpdateWindow(SDL_Window *window)
+{
+    if(!window) return;
+    // This is incredibly cringe, but...
+    // When we set W/H in the buffer geometry to 0,0, we reset the ANW to its default dimensions
+    // Therefore, we also don't change its dimensions (which breaks vulkan swapchains)
+    ANativeWindow *anw = window->internal->native_window;
+    ANativeWindow_setBuffersGeometry(anw, 0, 0, ANativeWindow_getFormat(anw));
+    int width = ANativeWindow_getWidth(anw);
+    int height = ANativeWindow_getHeight(anw);
+    SDL_Log("Update window dimensions: %i %i", width, height);
+    window->w = width;
+    window->h = height;
+    window->max_w = width;
+    window->max_h = height;
+
+    Android_SurfaceWidth = width;
+    Android_SurfaceHeight = height;
+
+    // Window size might be changed so notify the application about it
+    // We can't use onNativeResize because it will cause the whole surface/window to resize and break cursor position input
+    SDL_SendWindowEvent(window, SDL_EVENT_WINDOW_RESIZED, width, height);
+}
+
 void Android_DestroyWindow(SDL_VideoDevice *_this, SDL_Window *window)
 {
     Android_LockActivityMutex();
