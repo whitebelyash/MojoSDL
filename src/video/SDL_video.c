@@ -3086,7 +3086,7 @@ bool SDL_SetWindowPosition(SDL_Window *window, int x, int y)
         return result;
     }
 
-    return SDL_Unsupported();
+    return true;
 }
 
 bool SDL_GetWindowPosition(SDL_Window *window, int *x, int *y)
@@ -3239,7 +3239,7 @@ bool SDL_SetWindowSize(SDL_Window *window, int w, int h)
         _this->SetWindowSize(_this, window);
         SDL_SyncIfRequired(window);
     } else {
-        return SDL_Unsupported();
+        return true;
     }
     return true;
 }
