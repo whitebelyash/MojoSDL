@@ -457,10 +457,7 @@ static bool SDL_EGL_LoadLibraryInternal(SDL_VideoDevice *_this, const char *egl_
         egl_dll_handle = SDL_LoadObject(egl_path);
     }
     // Try loading a EGL symbol, if it does not work try the default library paths
-    if (!egl_dll_handle || SDL_LoadFunction(egl_dll_handle, "eglChooseConfig") == NULL) {
-        if (egl_dll_handle) {
-            SDL_UnloadObject(egl_dll_handle);
-        }
+    if (!egl_dll_handle) {
         path = SDL_GetHint(SDL_HINT_EGL_LIBRARY);
         if (!path) {
             path = DEFAULT_EGL;
@@ -474,10 +471,7 @@ static bool SDL_EGL_LoadLibraryInternal(SDL_VideoDevice *_this, const char *egl_
         }
 #endif
 
-        if (!egl_dll_handle || SDL_LoadFunction(egl_dll_handle, "eglChooseConfig") == NULL) {
-            if (egl_dll_handle) {
-                SDL_UnloadObject(egl_dll_handle);
-            }
+        if (!egl_dll_handle) {
             return SDL_SetError("Could not load EGL library");
         }
         SDL_ClearError();
@@ -487,25 +481,25 @@ static bool SDL_EGL_LoadLibraryInternal(SDL_VideoDevice *_this, const char *egl_
     _this->egl_data->egl_dll_handle = egl_dll_handle;
 
     // Load new function pointers
-    LOAD_FUNC(PFNEGLGETDISPLAYPROC, eglGetDisplay);
-    LOAD_FUNC(PFNEGLINITIALIZEPROC, eglInitialize);
-    LOAD_FUNC(PFNEGLTERMINATEPROC, eglTerminate);
     LOAD_FUNC(PFNEGLGETPROCADDRESSPROC, eglGetProcAddress);
-    LOAD_FUNC(PFNEGLCHOOSECONFIGPROC, eglChooseConfig);
+    LOAD_FUNC_EGLEXT(PFNEGLGETDISPLAYPROC, eglGetDisplay);
+    LOAD_FUNC_EGLEXT(PFNEGLINITIALIZEPROC, eglInitialize);
+    LOAD_FUNC_EGLEXT(PFNEGLTERMINATEPROC, eglTerminate);
+    LOAD_FUNC_EGLEXT(PFNEGLCHOOSECONFIGPROC, eglChooseConfig);
     LOAD_FUNC(PFNEGLCREATECONTEXTPROC, eglCreateContext);
     LOAD_FUNC(PFNEGLDESTROYCONTEXTPROC, eglDestroyContext);
-    LOAD_FUNC(PFNEGLCREATEPBUFFERSURFACEPROC, eglCreatePbufferSurface);
-    LOAD_FUNC(PFNEGLCREATEWINDOWSURFACEPROC, eglCreateWindowSurface);
-    LOAD_FUNC(PFNEGLDESTROYSURFACEPROC, eglDestroySurface);
+    LOAD_FUNC_EGLEXT(PFNEGLCREATEPBUFFERSURFACEPROC, eglCreatePbufferSurface);
+    LOAD_FUNC_EGLEXT(PFNEGLCREATEWINDOWSURFACEPROC, eglCreateWindowSurface);
+    LOAD_FUNC_EGLEXT(PFNEGLDESTROYSURFACEPROC, eglDestroySurface);
     LOAD_FUNC(PFNEGLMAKECURRENTPROC, eglMakeCurrent);
-    LOAD_FUNC(PFNEGLSWAPBUFFERSPROC, eglSwapBuffers);
-    LOAD_FUNC(PFNEGLSWAPINTERVALPROC, eglSwapInterval);
-    LOAD_FUNC(PFNEGLQUERYSTRINGPROC, eglQueryString);
-    LOAD_FUNC(PFNEGLGETCONFIGATTRIBPROC, eglGetConfigAttrib);
-    LOAD_FUNC(PFNEGLWAITNATIVEPROC, eglWaitNative);
-    LOAD_FUNC(PFNEGLWAITGLPROC, eglWaitGL);
-    LOAD_FUNC(PFNEGLBINDAPIPROC, eglBindAPI);
-    LOAD_FUNC(PFNEGLGETERRORPROC, eglGetError);
+    LOAD_FUNC_EGLEXT(PFNEGLSWAPBUFFERSPROC, eglSwapBuffers);
+    LOAD_FUNC_EGLEXT(PFNEGLSWAPINTERVALPROC, eglSwapInterval);
+    LOAD_FUNC_EGLEXT(PFNEGLQUERYSTRINGPROC, eglQueryString);
+    LOAD_FUNC_EGLEXT(PFNEGLGETCONFIGATTRIBPROC, eglGetConfigAttrib);
+    LOAD_FUNC_EGLEXT(PFNEGLWAITNATIVEPROC, eglWaitNative);
+    LOAD_FUNC_EGLEXT(PFNEGLWAITGLPROC, eglWaitGL);
+    LOAD_FUNC_EGLEXT(PFNEGLBINDAPIPROC, eglBindAPI);
+    LOAD_FUNC_EGLEXT(PFNEGLGETERRORPROC, eglGetError);
     LOAD_FUNC_EGLEXT(PFNEGLQUERYDEVICESEXTPROC, eglQueryDevicesEXT);
     LOAD_FUNC_EGLEXT(PFNEGLGETPLATFORMDISPLAYEXTPROC, eglGetPlatformDisplayEXT);
     // Atomic functions
@@ -849,7 +843,15 @@ static bool SDL_EGL_PrivateChooseConfig(SDL_VideoDevice *_this, bool set_config_
     }
 
     attribs[i++] = EGL_RENDERABLE_TYPE;
-    if (_this->gl_config.profile_mask == SDL_GL_CONTEXT_PROFILE_ES) {
+#ifdef SDL_VIDEO_DRIVER_ANDROID
+    if (mojoexec_renderspec.force_gles_context && mojoexec_renderspec.override_major_version > 0)
+        _this->gl_config.major_version = mojoexec_renderspec.override_major_version;
+#endif
+    int es = 0;
+#ifdef SDL_VIDEO_DRIVER_ANDROID
+    es = mojoexec_renderspec.force_gles_context;
+#endif
+    if (_this->gl_config.profile_mask == SDL_GL_CONTEXT_PROFILE_ES || es) {
 #ifdef EGL_KHR_create_context
         if (_this->gl_config.major_version >= 3 &&
             SDL_EGL_HasExtension(_this, SDL_EGL_DISPLAY_EXTENSION, "EGL_KHR_create_context")) {
@@ -1012,6 +1014,18 @@ SDL_GLContext SDL_EGL_CreateContext(SDL_VideoDevice *_this, EGLSurface egl_surfa
     EGLint major_version = _this->gl_config.major_version;
     EGLint minor_version = _this->gl_config.minor_version;
     bool profile_es = (profile_mask == SDL_GL_CONTEXT_PROFILE_ES);
+
+#ifdef SDL_VIDEO_DRIVER_ANDROID
+    if (mojoexec_renderspec.force_gles_context) {
+        profile_mask = SDL_GL_CONTEXT_PROFILE_ES;
+        profile_es = true;
+        if (mojoexec_renderspec.override_major_version > 0) {
+            major_version = mojoexec_renderspec.override_major_version;
+            minor_version = 2; // TODO: really?
+        }
+        _this->gl_config.flags &= ~SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+    }
+#endif
 
     if (!_this->egl_data) {
         SDL_SetError("EGL not initialized");
@@ -1312,7 +1326,11 @@ EGLSurface SDL_EGL_CreateSurface(SDL_VideoDevice *_this, SDL_Window *window, Nat
                 attribs[attr++] = EGL_GL_COLORSPACE_KHR;
                 attribs[attr++] = SDL_GetStringBoolean(srgbhint, false) ? EGL_GL_COLORSPACE_SRGB_KHR : EGL_GL_COLORSPACE_LINEAR_KHR;
             }
-        } else if (_this->gl_config.framebuffer_srgb_capable >= 0) {  // default behavior without the hint.
+        } else if (_this->gl_config.framebuffer_srgb_capable >= 0
+                   #ifdef SDL_VIDEO_DRIVER_ANDROID
+                   && !mojoexec_renderspec.force_gles_context
+                    #endif
+        ) {  // default behavior without the hint.
             attribs[attr++] = EGL_GL_COLORSPACE_KHR;
             attribs[attr++] = _this->gl_config.framebuffer_srgb_capable ? EGL_GL_COLORSPACE_SRGB_KHR : EGL_GL_COLORSPACE_LINEAR_KHR;
         }
