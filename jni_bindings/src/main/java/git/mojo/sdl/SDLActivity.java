@@ -14,6 +14,7 @@ public class SDLActivity {
     private static Runnable initCallback;
 
     protected static Surface mSurface;
+    protected static Activity mContext;
 
     public static void initialize() {
         mSurface = null;
@@ -89,8 +90,7 @@ public class SDLActivity {
     }
 
     public static Activity getContext() {
-        // TODO: return the activity context
-        return null;
+        return SDL.getContext();
     }
 
     public static void manualBackButton() {

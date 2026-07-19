@@ -29,6 +29,17 @@ import android.view.View;
 
 public class SDLControllerManager
 {
+    // These control gamepad support via SDL
+    // Basically when the game tries to use SDLControllerManager it triggers detectDevices
+    // which will run callbacks and disable emulated gamepad on the launcher side
+    static volatile boolean mControllerEnabled = false;
+    private static Runnable mEnabledCallback;
+    public static boolean isEnabled(){
+        return mControllerEnabled;
+    }
+    public static void setEnabledCallback(Runnable callback){
+        mEnabledCallback = callback;
+    }
 
     static native void nativeSetupJNI();
 
@@ -96,6 +107,10 @@ public class SDLControllerManager
      * This method is called by SDL using JNI.
      */
     static void detectDevices() {
+        if(!mControllerEnabled){
+            mControllerEnabled = true;
+            if(mEnabledCallback != null) mEnabledCallback.run();
+        }
         mJoystickHandler.detectDevices();
     }
 
