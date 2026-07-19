@@ -44,6 +44,7 @@ public class SDL {
         }
 
         if (isSubsystemCompiled(SDL_INIT_CONTROLLER)) {
+            HIDDeviceManager.acquire(mContext);
             SDLControllerManager.nativeSetupJNI();
         }
     }
