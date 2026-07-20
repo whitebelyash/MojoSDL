@@ -1276,7 +1276,6 @@ JNIEXPORT void JNICALL SDL_JAVA_INTERFACE(onNativeSurfaceChanged)(JNIEnv *env, j
             SDL_SetPointerProperty(SDL_GetWindowProperties(Android_Window), SDL_PROP_WINDOW_ANDROID_SURFACE_POINTER, data->egl_surface);
         }
 
-        Android_UpdateWindow(Android_Window);
         // GL Context handling is done in the event loop because this function is run from the Java thread
     }
 #endif

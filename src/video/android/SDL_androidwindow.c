@@ -75,16 +75,6 @@ bool Android_CreateWindow(SDL_VideoDevice *_this, SDL_Window *window, SDL_Proper
         result = SDL_SetError("Could not fetch native window");
         goto endfunction;
     }
-    //ANativeWindow_acquire(data->native_window);
-    fprintf(stderr, "SDL ANativeWindow width %u\n", ANativeWindow_getWidth(data->native_window));
-    fprintf(stderr, "SDL ANativeWindow height %u\n", ANativeWindow_getHeight(data->native_window));
-
-    // Window sizes needs to be updated or Minecraft will use 1x1 swapchain :HYPERROFEL:
-    window->w = ANativeWindow_getWidth(data->native_window);
-    window->h = ANativeWindow_getHeight(data->native_window);
-
-    Android_SurfaceWidth = window->w;
-    Android_SurfaceHeight = window->h;
 
     SDL_SetPointerProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_ANDROID_WINDOW_POINTER, data->native_window);
 
@@ -183,30 +173,6 @@ void Android_SetWindowResizable(SDL_VideoDevice *_this, SDL_Window *window, bool
 {
     // Set orientation
     Android_JNI_SetOrientation(window->w, window->h, window->flags & SDL_WINDOW_RESIZABLE, SDL_GetHint(SDL_HINT_ORIENTATIONS));
-}
-
-void Android_UpdateWindow(SDL_Window *window)
-{
-    if(!window) return;
-    // This is incredibly cringe, but...
-    // When we set W/H in the buffer geometry to 0,0, we reset the ANW to its default dimensions
-    // Therefore, we also don't change its dimensions (which breaks vulkan swapchains)
-    ANativeWindow *anw = window->internal->native_window;
-    ANativeWindow_setBuffersGeometry(anw, 0, 0, ANativeWindow_getFormat(anw));
-    int width = ANativeWindow_getWidth(anw);
-    int height = ANativeWindow_getHeight(anw);
-    SDL_Log("Update window dimensions: %i %i", width, height);
-    window->w = width;
-    window->h = height;
-    window->max_w = width;
-    window->max_h = height;
-
-    Android_SurfaceWidth = width;
-    Android_SurfaceHeight = height;
-
-    // Window size might be changed so notify the application about it
-    // We can't use onNativeResize because it will cause the whole surface/window to resize and break cursor position input
-    SDL_SendWindowEvent(window, SDL_EVENT_WINDOW_RESIZED, width, height);
 }
 
 void Android_DestroyWindow(SDL_VideoDevice *_this, SDL_Window *window)
