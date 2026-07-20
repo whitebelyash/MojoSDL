@@ -16,8 +16,14 @@ public class SDLActivity {
     protected static Surface mSurface;
     protected static Activity mContext;
 
+    private static SDLClipboard mClipboard;
+
     public static void initialize() {
         mSurface = null;
+    }
+
+    public static void setClipboard(SDLClipboard clipboard){
+        mClipboard = clipboard;
     }
 
     public static void setNativeSurface(Surface surface){
@@ -122,17 +128,15 @@ public class SDLActivity {
     }
 
     public static boolean clipboardHasText() {
-        // TODO
-        return false;
+        return mClipboard != null && mClipboard.getClipboardString() != null;
     }
 
     public static String clipboardGetText() {
-        // TODO
-        return null;
+        return mClipboard != null ? mClipboard.getClipboardString() : "";
     }
 
     public static void clipboardSetText(String string) {
-        // TODO
+        if(mClipboard != null) mClipboard.setClipboardString(string);
     }
 
     public static int createCustomCursor(int[] colors, int width, int height, int hotSpotX, int hotSpotY) {
